@@ -4,8 +4,8 @@ from rest_framework.permissions import IsAuthenticated
 from django_filters.rest_framework import DjangoFilterBackend
 from accounts.permissions import IsAdmin
 from .models import Course
-from .serializer import CourseSerializer
-from .pagination import CoursePagination
+from .serializer import CourseSerializer , EnrollmentSerializer
+from .pagination import CoursePagination 
 from django.shortcuts import render
 
 
@@ -16,7 +16,9 @@ class CourseViewset(viewsets.ModelViewSet):
 
 
   filter_backends = [DjangoFilterBackend,SearchFilter,OrderingFilter]
-  SearchFilter = ['title','instructor','difficulty','is_published']
+  search_fields= ['title','instructor','difficulty']
+  filterset_fields = ['difficulty','is_published']
+  ordering_fields = ['title','created_at']
 
 
   def get_permissions(self):
