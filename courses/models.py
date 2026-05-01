@@ -33,8 +33,15 @@ class Enrollment(models.Model):
       ('dro','Dropped'),
     )
 
-    student = models.ForeignKey(User,on_delete=models.CASCADE)
-    course = models.ForeignKey(Course , on_delete=models.CASCADE)
+    student = models.ForeignKey(User,on_delete=models.CASCADE,related_name='enrollments')
+    course = models.ForeignKey(Course , on_delete=models.CASCADE,related_name='enrollments')
     progress = models.IntegerField(default=0,validators=[MinValueValidator(0), MaxValueValidator(100)])
     status = models.CharField(max_length=3,choices=STATUS,default='act')
     enrolled_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+     unique_together = ('student','course')
+     ordering = ['-enrolled_at']
+
+     def __str__(self):
+        return f"{self.student} - {self.course}"

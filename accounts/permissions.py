@@ -13,12 +13,12 @@ class BaseRolePermisson(BasePermission):
 class IsAdmin(BaseRolePermisson):
   allowed_roles = ['admin']
 
-class IsAdmin(BaseRolePermisson):
+class IsInstructor(BaseRolePermisson):
   allowed_roles = ['instructor']
 
-class IsAdmin(BaseRolePermisson):
+class IsSponser(BaseRolePermisson):
   allowed_roles = ['sponsor']
 
-class IsAdmin(BaseRolePermisson):
+class IsStudent(BaseRolePermisson):
   allowed_roles = ['student']
 
