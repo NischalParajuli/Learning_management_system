@@ -7,14 +7,13 @@ from .models import Course , Enrollment
 from .serializer import CourseSerializer , EnrollmentSerializer
 from .pagination import CoursePagination 
 from django.shortcuts import render
-from accounts.permissions import IsAdmin , IsInstructor
+from accounts.permissions import IsInstructor
 
 
 class CourseViewset(viewsets.ModelViewSet):
   queryset = Course.objects.all()
   serializer_class = CourseSerializer
   pagination_class = CoursePagination
-
 
   filter_backends = [DjangoFilterBackend,SearchFilter,OrderingFilter]
   search_fields= ['title','instructor__username','difficulty']
