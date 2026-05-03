@@ -29,21 +29,53 @@ class SubmissionSerializer(serializers.ModelSerializer):
 
         return super().create(validated_data)
 
-  def update(self,instance,validated_data):
+def update(self, instance, validated_data):
     request = self.context['request']
+    user = request.user
 
-    if request.user != instance.student:
-      raise serializers.ValidationError('You cannot edit this submission')
+ 
+    if user.role == 'student':
 
-    if timezone.now() > instance. assignment.due_date:
-      raise serializers.ValidationError('Deadline passed : You cannot edit this')
+        if user != instance.student:
+            raise serializers.ValidationError("You cannot edit this submission")
 
-    return super().update(instance,validated_data)   
+        if timezone.now() > instance.assignment.due_date:
+            raise serializers.ValidationError("Deadline passed: You cannot edit this")
 
-  def validate(self,data):
-    if not data.get('assignment'):\
-      raise serializers.ValidationError({"assignment":"Required"})
-    return data
+        # student can only edit content
+        validated_data.pop('grade', None)
+        validated_data.pop('feedback', None)
+        validated_data.pop('status', None)
+
+   
+    elif user.role == 'instructor':
+
+        if instance.assignment.course.instructor != user:
+            raise serializers.ValidationError("You cannot grade this submission")
+
+        # instructor cannot edit content
+        validated_data.pop('content', None)
+
+        # mark as graded
+        validated_data['status'] = 'grd'
+
+  
+    elif user.role == 'admin':
+        pass
+
+    return super().update(instance, validated_data)  
+
+
+def validate(self,data):
+  if not data.get('assignment'):
+     raise serializers.ValidationError({"assignment":"Required"})
+  return data
+
+
+  
+
+
+    
 
       
 

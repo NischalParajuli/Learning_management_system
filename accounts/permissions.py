@@ -16,7 +16,7 @@ class IsAdmin(BaseRolePermisson):
 class IsInstructor(BaseRolePermisson):
   allowed_roles = ['instructor']
 
-class IsSponser(BaseRolePermisson):
+class IsSponsor(BaseRolePermisson):
   allowed_roles = ['sponsor']
 
 class IsStudent(BaseRolePermisson):

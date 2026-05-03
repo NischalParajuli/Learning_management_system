@@ -26,18 +26,18 @@ class Submission(models.Model):
   )
 
   assignment = models.ForeignKey(Assignment,on_delete=models.CASCADE,related_name='submissions')
-  student = models.ForeignKey(User,on_delete=models.CASCADE,related_name='submissions')
+  student = models.ForeignKey(User,on_delete=models.CASCADE,related_name='assignment_submissions')
   content = models.TextField()
   submitted_at = models.DateTimeField(auto_now_add=True)
-  feedback = models.CharField(max_length=200)
+  feedback = models.CharField(max_length=200,blank=True)
   grade = models.FloatField(default=0)
-  status = models.CharField(max_length=3,choices=SUBMISSION_STATUS,default='sub')
+  status = models.CharField(max_length=4,choices=SUBMISSION_STATUS,default='sub')
 
 
   class Meta:
     unique_together = ('assignment', 'student')
 
-def __str__(self):
+  def __str__(self):
     return self.title
 
 
@@ -45,7 +45,7 @@ class Quiz(models.Model):
 
   course = models.ForeignKey(Course,on_delete=models.CASCADE,related_name='quizzes') 
   title = models.CharField(max_length=150)
-  instructor = models.ForeignKey(User,on_delete=models.CASCADE) 
+  instructor = models.ForeignKey(User,on_delete=models.CASCADE,related_name='quizzes') 
   created_at = models.DateTimeField(auto_now_add=True)
 
 class Question(models.Model):
@@ -63,16 +63,16 @@ class Question(models.Model):
   opt2 = models.TextField()
   opt3 = models.TextField()
   opt4 = models.TextField()
-  correct_answer = models.CharField(max_length=1)
+  correct_answer = models.CharField(max_length=1,choices=CORRECT)
 
-def __str__(self):
+  def __str__(self):
     return self.title
 
 
 class QuizSubmission(models.Model):
 
   quiz = models.ForeignKey(Quiz,on_delete=models.CASCADE,related_name='submissions')
-  student = models.ForeignKey(User,on_delete=models.CASCADE,related_name='submissions')
+  student = models.ForeignKey(User,on_delete=models.CASCADE,related_name='quiz_submissions')
   score = models.IntegerField(default=0)
   submitted_at = models.DateTimeField(auto_now_add=True)
 
@@ -80,5 +80,5 @@ class QuizSubmission(models.Model):
     unique_together = ('quiz','student')
 
 
-def __str__(self):
+  def __str__(self):
     return self.title
