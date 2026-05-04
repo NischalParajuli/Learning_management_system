@@ -20,6 +20,7 @@ class Course(models.Model):
   created_at = models.DateTimeField(auto_now_add=True)
   updated_at = models.DateTimeField(auto_now = True)
   is_published = models.BooleanField(default=True)
+  course_duration = models.IntegerField(default=0)
 
   def __str__(self):
     return self.title
