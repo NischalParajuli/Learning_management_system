@@ -96,3 +96,7 @@ def send_email(request):
     return HttpResponse("Email test Sucessfull")
   except Exception as e :
     return HttpResponse(f'Failed to send email : {str(e)}')
+
+
+
+

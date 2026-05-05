@@ -66,7 +66,7 @@ class Question(models.Model):
   correct_answer = models.CharField(max_length=1,choices=CORRECT)
 
   def __str__(self):
-    return self.title
+    return f"Question {self.id}"
 
 
 class QuizSubmission(models.Model):
@@ -81,4 +81,4 @@ class QuizSubmission(models.Model):
 
 
   def __str__(self):
-    return self.title
+    return f"Question {self.id}"
