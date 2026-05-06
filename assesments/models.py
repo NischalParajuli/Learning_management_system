@@ -87,12 +87,14 @@ class QuizSubmission(models.Model):
     return f"{self.quiz.title} - {self.student.username}"
   
 class ReminderLog(models.Model):
-  student = models.ForeignKey(User,on_delete=models.CASCADE)
-  assignment = models.ForeignKey(Assignment,on_delete=models.CASCADE)
-  last_reminder_sent_at = models.DateTimeField(null=True,blank=True)
+    student = models.ForeignKey(User, on_delete=models.CASCADE)
+    assignment = models.ForeignKey(Assignment, on_delete=models.CASCADE, null=True, blank=True)
+    course = models.ForeignKey(Course, on_delete=models.CASCADE, null=True, blank=True)
 
-  class Meta:
-    unique_together  = ('student','assignment')
+    last_reminder_sent_at = models.DateTimeField(null=True, blank=True)
 
-  def __str__(self):
-    return f"{self.student.username} - {self.assignment.title}"
+    class Meta:
+      unique_together  = ('student','assignment')
+
+    def __str__(self):
+      return f"{self.student.username} - {self.assignment.title}"

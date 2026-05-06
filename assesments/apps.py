@@ -6,15 +6,9 @@ class AssesmentsConfig(AppConfig):
     name = 'assesments'
 
     def ready(self):
-        from apscheduler.schedulers.background import BackgroundScheduler
-        from assesments.services import check_deadlines_and_send_emails
-
-        scheduler = BackgroundScheduler()
-        scheduler.add_job(
-            check_deadlines_and_send_emails,
-            'interval',
-            minutes=30,
-            id='send_reminders',
-            replace_existing=True
-        )
-        scheduler.start()
+        try:
+            from .scheduler import start_scheduler
+            start_scheduler()
+        except Exception as e:
+            # prevents crash during migrations / startup
+            print(f"Scheduler failed to start: {e}")
