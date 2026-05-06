@@ -14,7 +14,7 @@ class Assignment(models.Model):
   created_at = models.DateTimeField(auto_now_add=True)
 
   def __str__(self):
-    return self.title
+    return f"{self.title} ({self.course})"
 
 
 class Submission(models.Model):
@@ -38,7 +38,7 @@ class Submission(models.Model):
     unique_together = ('assignment', 'student')
 
   def __str__(self):
-    return self.title
+    return f"{self.assignment.title} - {self.student.username}"
 
 
 class Quiz(models.Model):
@@ -47,6 +47,9 @@ class Quiz(models.Model):
   title = models.CharField(max_length=150)
   instructor = models.ForeignKey(User,on_delete=models.CASCADE,related_name='quizzes') 
   created_at = models.DateTimeField(auto_now_add=True)
+
+  def __str__(self):
+    return f"{self.title} ({self.course})"
 
 class Question(models.Model):
   CORRECT = (
@@ -66,7 +69,7 @@ class Question(models.Model):
   correct_answer = models.CharField(max_length=1,choices=CORRECT)
 
   def __str__(self):
-    return f"Question {self.id}"
+    return f"{self.question[:50]}"
 
 
 class QuizSubmission(models.Model):
@@ -81,4 +84,15 @@ class QuizSubmission(models.Model):
 
 
   def __str__(self):
-    return f"Question {self.id}"
+    return f"{self.quiz.title} - {self.student.username}"
+  
+class ReminderLog(models.Model):
+  student = models.ForeignKey(User,on_delete=models.CASCADE)
+  assignment = models.ForeignKey(Assignment,on_delete=models.CASCADE)
+  last_reminder_sent_at = models.DateTimeField(null=True,blank=True)
+
+  class Meta:
+    unique_together  = ('student','assignment')
+
+  def __str__(self):
+    return f"{self.student.username} - {self.assignment.title}"
