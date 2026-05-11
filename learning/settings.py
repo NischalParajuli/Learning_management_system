@@ -12,6 +12,7 @@ https://docs.djangoproject.com/en/6.0/ref/settings/
 """
 import os
 from dotenv import load_dotenv
+from datetime import timedelta
 
 load_dotenv()
 from pathlib import Path
@@ -48,7 +49,8 @@ INSTALLED_APPS = [
     'courses',
     'sponsorship',
     'django_filters',
-    'rest_framework'
+    'rest_framework',
+    'drf_spectacular'
     
     ]
 
@@ -131,7 +133,26 @@ REST_FRAMEWORK = {
     
     'DEFAULT_FILTER_BACKENDS': [
         'django_filters.rest_framework.DjangoFilterBackend',  # Enable filtering
+     
     ],
+
+    'DEFAULT_SCHEMA_CLASS': 'drf_spectacular.openapi.AutoSchema',
+}
+
+
+
+SPECTACULAR_SETTINGS = {
+    'TITLE': 'Learning Management System',
+    'DESCRIPTION': 'A simple Learning management System',
+    'VERSION': '1.0.0',
+    'SERVE_INCLUDE_SCHEMA': False,
+    'SERVE_PERMISSIONS': ['rest_framework.permissions.AllowAny'],
+    'SERVE_AUTHENTICATION': [],
+}
+
+SIMPLE_JWT = {
+    'ACCESS_TOKEN_LIFETIME': timedelta(minutes=10),
+    'REFRESH_TOKEN_LIFETIME': timedelta(days=7),
 }
 
 

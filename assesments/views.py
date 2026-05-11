@@ -24,9 +24,9 @@ class AssignmentView(viewsets.ModelViewSet):
 
   def get_permissions(self):
     if self.action == 'create':
-      return[IsInstructor()] | [IsAdmin()]
+      return[IsInstructor() , IsAdmin()]
     elif self.action in ['update','partial_update','destroy']:
-      return[IsAdmin()]  | [IsInstructor()]
+      return[IsAdmin() , IsInstructor()]
     return[IsAuthenticated()]
 
   def get_queryset(self):
@@ -57,7 +57,7 @@ class SubmissionView(viewsets.ModelViewSet):
       return[IsStudent()]
     elif self.action == 'destroy':
       return [IsAdmin()]
-    return[IsAuthenticated()]
+    return[IsAdmin()]
   
 
   def get_queryset(self):

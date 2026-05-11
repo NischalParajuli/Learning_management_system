@@ -8,6 +8,7 @@ from .serializer import CourseSerializer , EnrollmentSerializer
 from .pagination import CoursePagination 
 from django.shortcuts import render
 from accounts.permissions import IsInstructor
+from rest_framework.permissions import AllowAny
 
 
 class CourseViewset(viewsets.ModelViewSet):
@@ -26,6 +27,8 @@ class CourseViewset(viewsets.ModelViewSet):
           return[IsInstructor()]
         elif self.action in ['update','partial_update','destroy']:
           return[IsAdmin()] 
+        elif self.action in ['view']:
+           return [AllowAny()]
         return[IsAuthenticated()] 
   
   def perform_create(self, serializer):
@@ -45,7 +48,7 @@ class EnrollmentViewset(viewsets.ModelViewSet):
   def get_permissions(self):
     if self.action == 'destroy':
       return [IsAdmin()]
-    return [IsAuthenticated()] 
+    return [IsAdmin()] 
 
   def perform_create(self,serializer):
      serializer.save(student=self.request.user)
