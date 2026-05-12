@@ -28,6 +28,7 @@ urlpatterns = [
     path('api/', include('accounts.urls')),
     path('api/assesments/', include('assesments.urls')),
     path('api/course/',include('courses.urls')),
+    path('api/dashboard/',include('dashboard.urls')),
 
     #For Swagger ui
     path('api/schema/', SpectacularAPIView.as_view(permission_classes=[AllowAny]), name='schema'),

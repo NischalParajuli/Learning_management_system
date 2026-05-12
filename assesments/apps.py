@@ -6,9 +6,6 @@ class AssesmentsConfig(AppConfig):
     name = 'assesments'
 
     def ready(self):
-        try:
-            from .scheduler import start_scheduler
-            start_scheduler()
-        except Exception as e:
-            # prevents crash during migrations / startup
-            print(f"Scheduler failed to start: {e}")
+        import assesments.signals
+
+   

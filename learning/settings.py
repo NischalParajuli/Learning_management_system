@@ -12,7 +12,7 @@ https://docs.djangoproject.com/en/6.0/ref/settings/
 """
 import os
 from dotenv import load_dotenv
-from datetime import timedelta
+from celery.schedules import timedelta
 
 load_dotenv()
 from pathlib import Path
@@ -50,7 +50,8 @@ INSTALLED_APPS = [
     'sponsorship',
     'django_filters',
     'rest_framework',
-    'drf_spectacular'
+    'drf_spectacular',
+    'django_celery_beat',
     
     ]
 
@@ -171,6 +172,21 @@ LOGGING = {
         'level': 'INFO',
     },
 }
+
+
+CELERY_BEAT_SCHEDULE = {
+    'complete-expired-enrollments': {
+        'task': 'courses.tasks.complete_expired_enrollments',
+        'schedule': timedelta(hours=24),
+    },
+    'check-assignment-deadlines': {
+        'task': 'assesments.tasks.check_assignment_deadlines',
+        'schedule': timedelta(minutes=30),
+    },
+}
+
+CELERY_BROKER_URL = 'redis://localhost:6379/0'
+CELERY_RESULT_BACKEND = 'redis://localhost:6379/0'
 
 
 # Internationalization
