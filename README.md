@@ -65,6 +65,12 @@ This project supports multiple user roles including Admins, Instructors, Student
 * Celery Beat scheduled tasks
 * Redis-backed background task processing
 
+## Home Page
+
+* Responsive home page for quick platform overview
+* Landing page accessible to all users
+* Easy navigation to key platform features
+
 ## API Features
 
 * RESTful API architecture
@@ -374,6 +380,14 @@ POST /api/token/refresh/
 | POST   | `/api/assesments/assignments/`      | Create assignment |
 | PUT    | `/api/assesments/assignments/{id}/` | Update assignment |
 | DELETE | `/api/assesments/assignments/{id}/` | Delete assignment |
+
+---
+
+## Home Page
+
+| Method | Endpoint               | Description                          |
+| ------ | ---------------------- | ------------------------------------ |
+| GET    | `/api/assesments/`     | View home page (HTML template)       |
 
 ---
 
