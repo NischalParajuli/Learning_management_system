@@ -10,7 +10,7 @@ from courses.models import Enrollment
 #sends emails to student when their assignment is graded
 def notify_students_assignment_graded(sender,instance,**kwargs):
 
-  #sends when status is graded
+
   if instance.status == 'grd':
     return
   student = instance.student

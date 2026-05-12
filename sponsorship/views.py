@@ -62,7 +62,7 @@ class CourseSponsorViewset(viewsets.ModelViewSet):
   def get_permissions(self):
     if self.action in ['create','update','partial_update','destroy']:
       return[IsSponsor() , IsAdmin()]
-    return[IsAdmin]
+    return[IsAdmin()]
   
   def perform_create(self, serializer):
     serializer.save(sponsor=self.request.user)

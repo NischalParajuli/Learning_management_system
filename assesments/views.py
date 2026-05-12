@@ -12,6 +12,7 @@ from rest_framework.filters import SearchFilter
 from django.core.mail import send_mail
 from django.http import HttpResponse
 
+
 # Create your views here.
 
 
@@ -98,5 +99,5 @@ def send_email(request):
     return HttpResponse(f'Failed to send email : {str(e)}')
 
 
-
-
+def home(request):
+    return render(request, 'home.html')

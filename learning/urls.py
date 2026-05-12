@@ -26,9 +26,11 @@ urlpatterns = [
     path('admin/', admin.site.urls),
     path('send-email/', views.send_email, name='send_email'),
     path('api/', include('accounts.urls')),
+    path('', include('assesments.urls')),
     path('api/assesments/', include('assesments.urls')),
     path('api/course/',include('courses.urls')),
     path('api/dashboard/',include('dashboard.urls')),
+    path('api/sponsorship',include('sponsorship.urls')),
 
     #For Swagger ui
     path('api/schema/', SpectacularAPIView.as_view(permission_classes=[AllowAny]), name='schema'),

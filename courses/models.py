@@ -63,6 +63,6 @@ class Enrollment(models.Model):
      unique_together = ('student','course')
      ordering = ['-enrolled_at']
 
-     def __str__(self):
-        return f"{self.student.username} - {self.course.title}"
+    def __str__(self):
+      return f"{self.student.username} - {self.course.title}"
      
