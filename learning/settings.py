@@ -183,6 +183,10 @@ CELERY_BEAT_SCHEDULE = {
         'task': 'assesments.tasks.check_assignment_deadlines',
         'schedule': timedelta(minutes=30),
     },
+    'send_sponsor_progress_report':{
+      'task':'sponsorship.tasks.send_sponsor_progress_report',
+      'schedule':timedelta(hours=10)
+    }
 }
 
 CELERY_BROKER_URL = 'redis://localhost:6379/0'
