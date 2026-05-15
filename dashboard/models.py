@@ -1,3 +1,7 @@
-from django.db import models
+"""Models for the dashboard application.
 
-# Create your models here.
+This module is currently empty. Dashboard functionality is handled through
+aggregated statistics from other application models.
+"""
+
+from django.db import models

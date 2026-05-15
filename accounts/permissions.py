@@ -1,24 +1,51 @@
+"""Permission classes for role-based access control.
+
+Provides permission classes that verify user authentication and role
+to enforce access control across different endpoints.
+"""
+
 from rest_framework.permissions import BasePermission
 
+
 class BaseRolePermisson(BasePermission):
-  allowed_roles = []
+    """Base permission class for role-based access control.
+    
+    Verifies that the user is authenticated and belongs to one of the
+    allowed roles for the view.
+    """
+    allowed_roles = []
+
+    def has_permission(self, request, view):
+        """Check if user is authenticated and has allowed role.
+        
+        Args:
+            request: HTTP request object.
+            view: View being accessed.
+        
+        Returns:
+            bool: True if user is authenticated and has allowed role.
+        """
+        return (
+            request.user.is_authenticated
+            and request.user.role in self.allowed_roles
+        )
 
 
-  def has_permission(self, request, view):
-    return (
-      request.user.is_authenticated 
-      and request.user.role in self.allowed_roles
-    )
-  
 class IsAdmin(BaseRolePermisson):
-  allowed_roles = ['admin']
+    """Permission class for admin role."""
+    allowed_roles = ['admin']
+
 
 class IsInstructor(BaseRolePermisson):
-  allowed_roles = ['instructor']
+    """Permission class for instructor role."""
+    allowed_roles = ['instructor']
+
 
 class IsSponsor(BaseRolePermisson):
-  allowed_roles = ['sponsor']
+    """Permission class for sponsor role."""
+    allowed_roles = ['sponsor']
+
 
 class IsStudent(BaseRolePermisson):
-  allowed_roles = ['student']
-
+    """Permission class for student role."""
+    allowed_roles = ['student']

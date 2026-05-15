@@ -1,3 +1,9 @@
+"""Celery tasks for sending assignment and course reminders.
+
+Periodic tasks that check for upcoming assignment deadlines and course
+end dates, then sends email reminders to enrolled students.
+"""
+
 from celery import shared_task
 from django.utils import timezone
 from django.core.mail import send_mail
@@ -11,12 +17,28 @@ logger = logging.getLogger(__name__)
 
 
 def should_send_reminder(reminder, now):
+    """Check if enough time has passed to send another reminder.
+    
+    Prevents spam by checking if at least 1 hour has passed since the last reminder.
+    Args:
+        reminder: ReminderLog instance to check.
+        now: Current datetime.
+    Returns:
+        bool: True if reminder should be sent, False otherwise.
+    """
     if reminder.last_reminder_sent_at:
+        # Only send if at least 1 hour has passed since last reminder
         return now - reminder.last_reminder_sent_at >= timedelta(hours=1)
     return True
 
 
 def send_email(student, subject, message):
+    """Send email to a student.
+    Args:
+        student: User instance to send email to.
+        subject: Email subject line.
+        message: Email body content.
+    """
     send_mail(
         subject=subject,
         message=message,
@@ -25,14 +47,23 @@ def send_email(student, subject, message):
         fail_silently=False,
     )
 
+
 @shared_task
 def check_assignment_deadlines():
+    """Check for upcoming assignment deadlines and send reminders.
+    
+    Runs periodically to find assignments due within the next hour,
+    then sends reminders to students who haven't submitted yet.
+    
+    Returns:
+        None
+    """
     logger.info("Running assignment + course reminder check")
 
     now = timezone.now()
     upcoming = now + timedelta(hours=1)
 
-    # ---------------- ASSIGNMENTS ----------------
+    # Find assignments due within the next hour
     assignments = Assignment.objects.filter(
         due_date__gte=now,
         due_date__lte=upcoming
@@ -44,15 +75,18 @@ def check_assignment_deadlines():
         for enrollment in enrollments:
             student = enrollment.student
 
+            # Skip if student has no email
             if not student.email:
                 continue
 
+            # Skip if student already submitted
             if Submission.objects.filter(
                 assignment=assignment,
                 student=student
             ).exists():
                 continue
 
+            # Get or create reminder log to track sent reminders
             reminder, _ = ReminderLog.objects.get_or_create(
                 student=student,
                 assignment=assignment
@@ -76,10 +110,10 @@ def check_assignment_deadlines():
             except Exception as e:
                 logger.error(f"Assignment email failed: {e}", exc_info=True)
 
-    # ---------------- COURSES ----------------
+    # Find courses ending within the next day
     courses = Course.objects.filter(
         end_date__gte=now,
-        end_date__lte= timezone.now() + timedelta(days=1)
+        end_date__lte=timezone.now() + timedelta(days=1)
     )
 
     for course in courses:
