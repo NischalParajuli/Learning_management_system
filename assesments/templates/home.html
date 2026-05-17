@@ -126,7 +126,7 @@ body{font-family:var(--font-sans, system-ui, sans-serif);font-size:13px;line-hei
     <a class="nl" onclick="go('courses',this)">Courses <span class="b">6</span></a>
     <a class="nl" onclick="go('assignments',this)">Assignments <span class="b">6</span></a>
     <a class="nl" onclick="go('submissions',this)">Submissions <span class="b">6</span></a>
-    <a class="nl" onclick="go('dashboard',this)">Dashboard <span class="b">1</span></a>
+    <a class="nl" onclick="go('dashboard',this)">Dashboard <span class="b">2</span></a>
     <a class="nl" onclick="go('sponsorships',this)">Sponsorships <span class="b">5</span></a>
     <a class="nl" onclick="go('csponsors',this)">Course sponsors <span class="b">5</span></a>
     <a class="nl" onclick="go('utils',this)">Utilities <span class="b">5</span></a>
@@ -209,12 +209,14 @@ body{font-family:var(--font-sans, system-ui, sans-serif);font-size:13px;line-hei
       <div class="ep" onclick="tog(this)"><div class="er"><span class="m delete">DELETE</span><span class="ep-p">/api/assesments/submissions/{id}/</span><span class="ep-d">Delete submission</span><span class="ep-c chevron"></span></div><div class="ep-det"><div class="dr"><div class="dl">Auth</div><span class="role r-adm">IsAdmin</span></div></div></div>
     </div>
 
-    <!-- Dashboard -->
-    <div class="sec" id="dashboard">
-      <div class="sec-t">Dashboard</div>
-      <div class="sec-s">Admin overview and platform statistics.</div>
-      <div class="ep" onclick="tog(this)"><div class="er"><span class="m get">GET</span><span class="ep-p">/api/dashboard/</span><span class="ep-d">Admin statistics</span><span class="ep-c chevron"></span></div><div class="ep-det"><div class="dr"><div class="dl">Description</div><div class="db">Platform-wide stats: user counts, course stats, enrollment, assignment stats, sponsorship amounts.</div></div><div class="dr"><div class="dl">Auth</div><span class="role r-aut">IsAuthenticated</span><span class="role r-adm">IsAdmin</span></div></div></div>
-    </div>
+
+  <!-- Dashboard -->
+<div class="sec" id="dashboard">
+  <div class="sec-t">Dashboard</div>
+  <div class="sec-s">Role-based overview and platform statistics.</div>
+  <div class="ep" onclick="tog(this)"><div class="er"><span class="m get">GET</span><span class="ep-p">/api/dashboard/</span><span class="ep-d">Admin statistics</span><span class="ep-c chevron"></span></div><div class="ep-det"><div class="dr"><div class="dl">Description</div><div class="db">Platform-wide stats: user counts, course stats, enrollment, assignment stats, sponsorship amounts.</div></div><div class="dr"><div class="dl">Auth</div><span class="role r-aut">IsAuthenticated</span><span class="role r-adm">IsAdmin</span></div></div></div>
+  <div class="ep" onclick="tog(this)"><div class="er"><span class="m get">GET</span><span class="ep-p">/api/dashboard/sponsor-dashboard/</span><span class="ep-d">Sponsor statistics</span><span class="ep-c chevron"></span></div><div class="ep-det"><div class="dr"><div class="dl">Description</div><div class="db">Sponsor-specific stats: student sponsorships, course sponsorships, amounts contributed, and status breakdown.</div></div><div class="dr"><div class="dl">Auth</div><span class="role r-aut">IsAuthenticated</span><span class="role r-spo">IsSponsor</span></div></div></div>
+</div>
 
     <!-- Sponsorships -->
     <div class="sec" id="sponsorships">

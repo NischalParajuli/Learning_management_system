@@ -15,6 +15,8 @@ from accounts.permissions import IsAdmin, IsInstructor
 from .models import Course, Enrollment
 from .serializer import CourseSerializer, EnrollmentSerializer
 from .pagination import CoursePagination
+from rest_framework.exceptions import MethodNotAllowed
+
 
 
 class CourseViewset(viewsets.ModelViewSet):
@@ -33,6 +35,13 @@ class CourseViewset(viewsets.ModelViewSet):
     filterset_fields = ['difficulty', 'is_published']
     ordering_fields = ['title', 'created_at']
 
+
+    def create(self, request, *args, **kwargs):
+        if request.user.role == 'student':
+            raise MethodNotAllowed('POST', detail='Students cannot create courses')
+        return super().create(request, *args, **kwargs)
+
+
     def get_permissions(self):
         """Determine required permissions based on action.
         
@@ -40,7 +49,7 @@ class CourseViewset(viewsets.ModelViewSet):
             list: Permission classes required for the action.
         """
         if self.action == 'create':
-            return [IsInstructor()]
+            return [IsAdmin()]
         elif self.action in ['update', 'partial_update', 'destroy']:
             return [IsAdmin()]
         elif self.action == 'enroll':
@@ -80,6 +89,8 @@ class CourseViewset(viewsets.ModelViewSet):
             {'message': f'Successfully enrolled in {course.title}'},
             status=status.HTTP_201_CREATED
         )
+
+
 
 
 class EnrollmentViewset(viewsets.ModelViewSet):

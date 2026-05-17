@@ -10,7 +10,7 @@ from rest_framework.response import Response
 from rest_framework.permissions import IsAuthenticated
 from django.db.models import Sum
 
-from accounts.permissions import IsAdmin
+from accounts.permissions import IsAdmin, IsSponsor
 from django.contrib.auth import get_user_model
 from courses.models import Course, Enrollment
 from assesments.models import Assignment, Submission
@@ -98,3 +98,69 @@ class AdminDashboardView(APIView):
 
         return Response(data)
 
+
+
+class SponsorDashboardView(APIView):  
+    permission_classes = [IsAuthenticated, IsSponsor]
+
+    def get(self, request):
+        sponsor = request.user
+
+        # student sponsorships
+        student_sponsorships = Sponsorship.objects.filter(sponsor=sponsor)
+        total_student_sponsorships = student_sponsorships.count()
+        active_student_sponsorships = student_sponsorships.filter(status='act').count()
+        completed_student_sponsorships = student_sponsorships.filter(status='com').count()
+        cancelled_student_sponsorships = student_sponsorships.filter(status='can').count()
+        total_student_amount = student_sponsorships.aggregate(total=Sum('amount'))['total'] or 0
+
+        # course sponsorships
+        course_sponsorships = CourseSponsor.objects.filter(sponsor=sponsor)
+        total_course_sponsorships = course_sponsorships.count()
+        active_course_sponsorships = course_sponsorships.filter(status='act').count()
+        completed_course_sponsorships = course_sponsorships.filter(status='com').count()
+        cancelled_course_sponsorships = course_sponsorships.filter(status='can').count()
+        total_course_amount = course_sponsorships.aggregate(total=Sum('amount'))['total'] or 0
+
+        data = {
+            "sponsor": sponsor.username,
+
+            "student_sponsorships": {
+                "total": total_student_sponsorships,
+                "active": active_student_sponsorships,
+                "completed": completed_student_sponsorships,
+                "cancelled": cancelled_student_sponsorships,
+                "total_amount": total_student_amount,
+                "sponsored_students": [
+                    {
+                        "student": s.enrollment.student.username,
+                        "course": s.enrollment.course.title,
+                        "amount": s.amount,
+                        "status": s.get_status_display(),
+                        "sponsored_at": s.sponsored_at,
+                    }
+                    for s in student_sponsorships
+                ]
+            },
+
+            "course_sponsorships": {
+                "total": total_course_sponsorships,
+                "active": active_course_sponsorships,
+                "completed": completed_course_sponsorships,
+                "cancelled": cancelled_course_sponsorships,
+                "total_amount": total_course_amount,
+                "sponsored_courses": [
+                    {
+                        "course": c.course.title,
+                        "amount": c.amount,
+                        "status": c.get_status_display(),
+                        "sponsored_at": c.sponsored_at,
+                    }
+                    for c in course_sponsorships
+                ]
+            },
+
+            "total_amount_contributed": total_student_amount + total_course_amount,
+        }
+
+        return Response(data)
