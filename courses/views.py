@@ -14,7 +14,7 @@ from django_filters.rest_framework import DjangoFilterBackend
 from accounts.permissions import IsAdmin, IsInstructor
 from .models import Course, Enrollment
 from .serializer import CourseSerializer, EnrollmentSerializer
-from .pagination import CoursePagination
+from .pagination import CoursePagination , EnrollmentPagination
 from rest_framework.exceptions import MethodNotAllowed
 
 
@@ -101,6 +101,8 @@ class EnrollmentViewset(viewsets.ModelViewSet):
     """
     queryset = Enrollment.objects.all()
     serializer_class = EnrollmentSerializer
+    pagination_class = EnrollmentPagination
+
 
     def get_queryset(self):
         """Filter enrollments based on user role.

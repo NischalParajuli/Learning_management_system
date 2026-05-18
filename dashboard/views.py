@@ -9,7 +9,7 @@ from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework.permissions import IsAuthenticated
 from django.db.models import Sum
-
+from .pagination import AdminPagination , SponsorPagination
 from accounts.permissions import IsAdmin, IsSponsor
 from django.contrib.auth import get_user_model
 from courses.models import Course, Enrollment
@@ -27,6 +27,7 @@ class AdminDashboardView(APIView):
     and sponsorships.
     """
     permission_classes = [IsAuthenticated, IsAdmin]
+    pagination_class = AdminPagination
 
     def get(self, request):
         """Retrieve system statistics.
@@ -101,7 +102,8 @@ class AdminDashboardView(APIView):
 
 
 class SponsorDashboardView(APIView):  
-    permission_classes = [IsAuthenticated, IsSponsor]
+    permission_classes = [IsAuthenticated, IsSponsor , IsAdmin]
+    pagination_class = SponsorPagination
 
     def get(self, request):
         sponsor = request.user
