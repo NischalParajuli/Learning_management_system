@@ -14,12 +14,25 @@ from drf_spectacular.utils import extend_schema
 
 @method_decorator(csrf_exempt, name='dispatch')
 class RegisterView(APIView):
+    """API view for user registration.
+    
+    Handles user registration requests both HTML form display and JSON API calls.
+    No authentication required. Automatically assigns 'student' role to new users.
+    """
     permission_classes = [AllowAny]
     authentication_classes = []
     renderer_classes = [BrowsableAPIRenderer, JSONRenderer]
     parser_classes = [FormParser, MultiPartParser, JSONParser]
 
     def get(self, request):
+        """Display HTML registration form.
+        
+        Args:
+            request: HTTP request object.
+        
+        Returns:
+            HttpResponse: HTML form for user registration.
+        """
         html = """
     <!DOCTYPE html>
     <html>
@@ -117,6 +130,17 @@ class RegisterView(APIView):
 
     @extend_schema(request=UserSerializer)
     def post(self, request):
+        """Handle user registration submission.
+        
+        Creates a new user account with the provided credentials.
+        Automatically assigns 'student' role to new users.
+        
+        Args:
+            request: HTTP request with username, email, and password.
+        
+        Returns:
+            Response: Success message with status 201 if valid, errors otherwise.
+        """
         serializer = UserSerializer(data=request.data)
         if serializer.is_valid():
             serializer.save(role='student')

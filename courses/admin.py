@@ -1,10 +1,14 @@
 from django.contrib import admin
 from .models import *
-# Register your models here.
 
 
 @admin.register(Course)
 class CourseAdmin(admin.ModelAdmin):
+    """Admin configuration for Course model.
+    
+    Customized admin interface for managing courses with key fields displayed:
+    title, description, instructor, difficulty level, dates, and publish status.
+    """
     fields = (
         'title',
         'description',
@@ -16,4 +20,11 @@ class CourseAdmin(admin.ModelAdmin):
     )
 
 
-admin.site.register(Enrollment)
+@admin.register(Enrollment)
+class EnrollmentAdmin(admin.ModelAdmin):
+    """Admin configuration for Enrollment model.
+    
+    Allows administrators to view and manage student course enrollments,
+    progress tracking, and enrollment status.
+    """
+    pass

@@ -8,12 +8,22 @@ from courses.models import Enrollment
 
 
 class AssignmentSerializer(serializers.ModelSerializer):
+    """Serializes Assignment model instances to/from JSON.
+    
+    Converts Assignment objects to JSON for API responses and vice versa.
+    """
     class Meta:
         model = Assignment
         fields = '__all__'
 
 
 class SubmissionSerializer(serializers.ModelSerializer):
+    """Serializes Submission model instances to/from JSON.
+    
+    Handles submission creation, validation, and updates with role-based
+    access control. Hides grades/feedback from students, enforces deadlines,
+    and prevents duplicate submissions.
+    """
     class Meta:
         model = Submission
         fields = ['id', 'assignment', 'student', 'content', 'feedback', 'grade', 'status', 'submitted_at']
@@ -21,14 +31,29 @@ class SubmissionSerializer(serializers.ModelSerializer):
 
     def to_representation(self, instance):
         """Hide grade and feedback from students."""
-        data = super().to_representation(instance)
+        data = super().to_representation(instance) # converts model objects to dictionary
         request = self.context.get('request')
-        if request and request.user.role == 'student':
-            data.pop('feedback', None)
-            data.pop('grade', None)
+        if request is not None and hasattr(request, 'user') and request.user.is_authenticated: # safety check 
+            if request.user.role == 'student':
+                data.pop('feedback', None)
+                data.pop('grade', None)
         return data
 
     def validate(self, data):
+        """Validate submission data based on user role and enrollment.
+        
+        Ensures students are enrolled in the course, haven't already submitted,
+        and don't attempt to set restricted fields like grade/feedback.
+        
+        Args:
+            data: Data to validate.
+        
+        Returns:
+            dict: Validated data.
+            
+        Raises:
+            ValidationError: If validation fails.
+        """
         request = self.context.get('request')
         user = request.user
 
@@ -54,7 +79,7 @@ class SubmissionSerializer(serializers.ModelSerializer):
 
             forbidden = ['grade', 'feedback', 'status']
             for field in forbidden:
-                if field in data:
+                if data.get(field):
                     raise serializers.ValidationError(
                         {field: f'Students are not allowed to set {field}.'}
                     )
@@ -62,6 +87,17 @@ class SubmissionSerializer(serializers.ModelSerializer):
         return data
 
     def create(self, validated_data):
+        """Create a new submission.
+        
+        Sets the current user as the student and automatically marks submissions
+        as 'late' if submitted past the assignment deadline.
+        
+        Args:
+            validated_data: Validated submission data.
+        
+        Returns:
+            Submission: The newly created submission object.
+        """
         request = self.context['request']
         assignment = validated_data.get('assignment')
 
@@ -73,6 +109,22 @@ class SubmissionSerializer(serializers.ModelSerializer):
         return super().create(validated_data)
 
     def update(self, instance, validated_data):
+        """Update an existing submission with role-based permissions.
+        
+        Students can only edit their own submissions before deadline.
+        Instructors can only grade submissions for their courses.
+        Admins can modify any submission.
+        
+        Args:
+            instance: The submission being updated.
+            validated_data: Validated update data.
+        
+        Returns:
+            Submission: The updated submission object.
+            
+        Raises:
+            ValidationError: If user lacks permission or deadline has passed.
+        """
         request = self.context['request']
         user = request.user
 
@@ -98,6 +150,11 @@ class SubmissionSerializer(serializers.ModelSerializer):
 
 
 class QuestionSerializer(serializers.ModelSerializer):
+    """Serializes Question model instances to/from JSON.
+    
+    Hides the correct answer from students to prevent cheating.
+    Only instructors and admins can see the correct answer.
+    """
     class Meta:
         model = Question
         fields = ['id', 'quiz', 'question', 'opt1', 'opt2', 'opt3', 'opt4', 'correct_answer']
@@ -106,14 +163,18 @@ class QuestionSerializer(serializers.ModelSerializer):
         """Hide correct_answer from students."""
         data = super().to_representation(instance)
         request = self.context.get('request')
-        if request is not None and hasattr(request, 'user') and request.user.role == 'student':
-            data.pop('correct_answer', None)
+        if request is not None and hasattr(request, 'user') and request.user.is_authenticated:
+            if request.user.role == 'student':
+                data.pop('correct_answer', None)
         return data
 
 
 class QuizSerializer(serializers.ModelSerializer):
-    # Explicitly named to avoid any clash with the 'questions' reverse relation.
-    # DRF will call get_quiz_questions() for this field.
+    """Serializes Quiz model instances to/from JSON.
+    
+    Includes nested questions with proper context-aware visibility of answers.
+    Validates that instructors only create quizzes for their own courses.
+    """
     quiz_questions = serializers.SerializerMethodField()
 
     class Meta:
@@ -130,7 +191,17 @@ class QuizSerializer(serializers.ModelSerializer):
         ).data
 
     def validate_course(self, course):
-        """Instructors may only create quizzes for their own courses."""
+        """Ensure instructors only create quizzes for their own courses.
+        
+        Args:
+            course: The course object being validated.
+        
+        Returns:
+            Course: The validated course object.
+            
+        Raises:
+            ValidationError: If instructor tries to create quiz for another instructor's course.
+        """
         request = self.context.get('request')
         if request is not None and request.user.role == 'instructor':
             if course.instructor != request.user:
@@ -141,6 +212,12 @@ class QuizSerializer(serializers.ModelSerializer):
 
 
 class QuizSubmissionSerializer(serializers.ModelSerializer):
+    """Serializes QuizSubmission model instances to/from JSON.
+    
+    Handles quiz submission with answer validation, scoring, and duplicate
+    submission prevention. Accepts answers as JSON string mapping question IDs
+    to answers (A, B, C, or D).
+    """
     # Accepts a JSON string: e.g. {"4": "A", "5": "B", "6": "C"}
     answers = serializers.CharField(write_only=True)
 
@@ -150,6 +227,25 @@ class QuizSubmissionSerializer(serializers.ModelSerializer):
         read_only_fields = ['student', 'score', 'submitted_at']
 
     def validate(self, data):
+        """Validate quiz submission answers and quiz requirements.
+        
+        Ensures:
+        - Quiz is provided
+        - Student hasn't already submitted this quiz
+        - Answers are valid JSON format
+        - All answers are A, B, C, or D
+        - All questions are answered
+        - No extra questions are answered
+        
+        Args:
+            data: Data to validate.
+        
+        Returns:
+            dict: Validated data with parsed answers.
+            
+        Raises:
+            ValidationError: If validation fails.
+        """
         request = self.context.get('request')
         user = request.user
         quiz = data.get('quiz')
@@ -163,7 +259,7 @@ class QuizSubmissionSerializer(serializers.ModelSerializer):
             )
 
         # Parse answers from JSON string
-        raw_answers = data.get('answers', '{}')
+        raw_answers = data.get('answers', '{}') # converts raaw answers to python dictionary
         if isinstance(raw_answers, str):
             try:
                 answers = json.loads(raw_answers)
@@ -201,6 +297,17 @@ class QuizSubmissionSerializer(serializers.ModelSerializer):
         return data
 
     def create(self, validated_data):
+        """Create a new quiz submission with automatic scoring.
+        
+        Compares student answers against correct answers and calculates score.
+        Sets current user as the student submitting the quiz.
+        
+        Args:
+            validated_data: Validated submission data including answers.
+        
+        Returns:
+            QuizSubmission: The newly created quiz submission with calculated score.
+        """
         answers = validated_data.pop('answers')
         quiz = validated_data['quiz']
         request = self.context['request']

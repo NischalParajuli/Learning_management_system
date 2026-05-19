@@ -17,12 +17,23 @@ from rest_framework.parsers import FormParser, MultiPartParser, JSONParser
 
 
 class AssignmentView(viewsets.ModelViewSet):
+    """API viewset for managing course assignments.
+    
+    Provides CRUD operations for assignments with role-based filtering.
+    Only students can create, instructors/admins can update, only admins can delete.
+    Filters assignments by user role and course enrollment.
+    """
     queryset = Assignment.objects.all()
     filter_backends = [DjangoFilterBackend, SearchFilter]
     search_fields = ['title', 'course__title', 'instructor__username']
     serializer_class = AssignmentSerializer
 
     def get_permissions(self):
+        """Determine required permissions based on action.
+        
+        Returns:
+            list: Permission classes required for the action.
+        """
         if self.action == 'create':
             return [IsStudent()]
         elif self.action in ['update', 'partial_update']:
@@ -32,6 +43,14 @@ class AssignmentView(viewsets.ModelViewSet):
         return [IsAuthenticated()]
 
     def get_queryset(self):
+        """Filter assignments based on user role.
+        
+        Admins see all assignments. Instructors see their own assignments.
+        Students see assignments from courses they're enrolled in.
+        
+        Returns:
+            QuerySet: Filtered assignments.
+        """
         user = self.request.user
 
         if user.role == 'admin':
@@ -53,14 +72,29 @@ class AssignmentView(viewsets.ModelViewSet):
         return Assignment.objects.none()
 
     def perform_create(self, serializer):
+        """Set the current user as the assignment instructor.
+        
+        Args:
+            serializer: Assignment serializer instance.
+        """
         serializer.save(instructor=self.request.user)
 
 
 class SubmissionView(viewsets.ModelViewSet):
+    """API viewset for managing assignment submissions.
+    
+    Provides CRUD operations for student submissions with role-based filtering.
+    Students create/update their own submissions, instructors grade them.
+    """
     queryset = Submission.objects.all()
     serializer_class = SubmissionSerializer
 
     def get_permissions(self):
+        """Determine required permissions based on action.
+        
+        Returns:
+            list: Permission classes required for the action.
+        """
         if self.action == 'create':
             return [IsStudent()]
         elif self.action in ['update', 'partial_update']:
@@ -70,6 +104,14 @@ class SubmissionView(viewsets.ModelViewSet):
         return [IsAuthenticated()]
 
     def get_queryset(self):
+        """Filter submissions based on user role.
+        
+        Admins see all submissions. Instructors see submissions for their courses.
+        Students see only their own submissions.
+        
+        Returns:
+            QuerySet: Filtered submissions.
+        """
         user = self.request.user
 
         if user.role == 'admin':
@@ -84,16 +126,31 @@ class SubmissionView(viewsets.ModelViewSet):
         return Submission.objects.none()
 
     def perform_create(self, serializer):
+        """Set the current user as the student submitting.
+        
+        Args:
+            serializer: Submission serializer instance.
+        """
         serializer.save(student=self.request.user)
 
 
 class QuizView(viewsets.ModelViewSet):
+    """API viewset for managing course quizzes.
+    
+    Provides CRUD operations for quizzes with role-based access control.
+    Only instructors can create/modify/delete quizzes. Includes search and filtering.
+    """
     queryset = Quiz.objects.all()
     serializer_class = QuizSerializer
     filter_backends = [DjangoFilterBackend, SearchFilter]
     search_fields = ['title', 'course__title', 'instructor__username']
 
     def get_permissions(self):
+        """Determine required permissions based on action.
+        
+        Returns:
+            list: Permission classes required for the action.
+        """
         if self.action == 'create':
             return [IsInstructor()]
         elif self.action in ['update', 'partial_update', 'destroy']:
@@ -101,6 +158,14 @@ class QuizView(viewsets.ModelViewSet):
         return [IsAuthenticated()]
 
     def get_queryset(self):
+        """Filter quizzes based on user role.
+        
+        Admins see all quizzes. Instructors see their own quizzes.
+        Students see quizzes from courses they're enrolled in.
+        
+        Returns:
+            QuerySet: Filtered quizzes.
+        """
         user = self.request.user
 
         if user.role == 'admin':
@@ -118,19 +183,43 @@ class QuizView(viewsets.ModelViewSet):
         return Quiz.objects.none()
 
     def perform_create(self, serializer):
+        """Set the current user as the quiz instructor.
+        
+        Args:
+            serializer: Quiz serializer instance.
+        """
         serializer.save(instructor=self.request.user)
 
 
 class QuestionView(viewsets.ModelViewSet):
+    """API viewset for managing quiz questions.
+    
+    Provides CRUD operations for quiz questions with role-based access.
+    Only instructors can create/modify/delete questions for their quizzes.
+    Ensures instructors can only manage their own quizzes' questions.
+    """
     queryset = Question.objects.all()
     serializer_class = QuestionSerializer
 
     def get_permissions(self):
+        """Determine required permissions based on action.
+        
+        Returns:
+            list: Permission classes required for the action.
+        """
         if self.action in ['create', 'update', 'partial_update', 'destroy']:
             return [IsInstructor()]
         return [IsAuthenticated()]
 
     def get_queryset(self):
+        """Filter questions based on user role.
+        
+        Admins see all questions. Instructors see questions in their quizzes.
+        Students see questions in quizzes from courses they're enrolled in.
+        
+        Returns:
+            QuerySet: Filtered questions.
+        """
         user = self.request.user
 
         if user.role == 'admin':
@@ -148,28 +237,61 @@ class QuestionView(viewsets.ModelViewSet):
         return Question.objects.none()
 
     def _check_quiz_ownership(self, quiz):
+        """Verify that instructor owns the quiz before allowing modifications.
+        
+        Args:
+            quiz: The quiz object to verify ownership of.
+        
+        Raises:
+            PermissionDenied: If instructor doesn't own the quiz.
+        """
         if self.request.user.role == 'instructor' and quiz.instructor != self.request.user:
             raise PermissionDenied("You can only manage questions for your own quizzes.")
 
     def perform_create(self, serializer):
+        """Verify quiz ownership before creating a question.
+        
+        Args:
+            serializer: Question serializer instance.
+        """
         self._check_quiz_ownership(serializer.validated_data['quiz'])
         serializer.save()
 
     def perform_update(self, serializer):
+        """Verify quiz ownership before updating a question.
+        
+        Args:
+            serializer: Question serializer instance.
+        """
         self._check_quiz_ownership(serializer.instance.quiz)
         serializer.save()
 
     def perform_destroy(self, instance):
+        """Verify quiz ownership before deleting a question.
+        
+        Args:
+            instance: Question instance to delete.
+        """
         self._check_quiz_ownership(instance.quiz)
         instance.delete()
 
 
 class QuizSubmissionView(viewsets.ModelViewSet):
+    """API viewset for managing quiz submissions.
+    
+    Handles student quiz submission and answer recording. Automatically
+    calculates scores. Only students can create, only admins can delete.
+    """
     queryset = QuizSubmission.objects.all()
     serializer_class = QuizSubmissionSerializer
     parser_classes = [FormParser, MultiPartParser, JSONParser]
 
     def get_permissions(self):
+        """Determine required permissions based on action.
+        
+        Returns:
+            list: Permission classes required for the action.
+        """
         if self.action == 'create':
             return [IsStudent()]
         elif self.action == 'destroy':
@@ -177,6 +299,14 @@ class QuizSubmissionView(viewsets.ModelViewSet):
         return [IsAuthenticated()]
 
     def get_queryset(self):
+        """Filter quiz submissions based on user role.
+        
+        Admins see all submissions. Instructors see submissions for their quizzes.
+        Students see only their own submissions.
+        
+        Returns:
+            QuerySet: Filtered quiz submissions.
+        """
         user = self.request.user
 
         if user.role == 'admin':
@@ -192,6 +322,14 @@ class QuizSubmissionView(viewsets.ModelViewSet):
 
 
 def send_email(request):
+    """Send a test email (placeholder function).
+    
+    Args:
+        request: HTTP request object.
+    
+    Returns:
+        HttpResponse: Success or error response.
+    """
     try:
         send_mail(
             subject='Email from Django',

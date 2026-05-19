@@ -17,7 +17,10 @@ class CoursePagination(PageNumberPagination):
 
 
 class EnrollmentPagination(PageNumberPagination):
-
+    """Pagination class for enrollment list endpoints.
+    
+    Returns 10 enrollments per page with a maximum page size of 50.
+    """
     page_size = 10
     page_query_param = 'page_size'
     max_page_size = 50

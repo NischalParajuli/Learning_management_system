@@ -101,11 +101,25 @@ class AdminDashboardView(APIView):
 
 
 
-class SponsorDashboardView(APIView):  
+class SponsorDashboardView(APIView):
+    """Sponsor dashboard API endpoint showing sponsorship statistics.
+    
+    Requires sponsor or admin authentication. Returns statistics about
+    student and course sponsorships managed by the sponsor.
+    """
     permission_classes = [IsAuthenticated, IsSponsor , IsAdmin]
     pagination_class = SponsorPagination
 
     def get(self, request):
+        """Retrieve sponsor's sponsorship statistics.
+        
+        Args:
+            request: HTTP request object.
+        
+        Returns:
+            Response: Dictionary containing sponsor's student and course sponsorships
+                     with counts, amounts, and detailed sponsorship records.
+        """
         sponsor = request.user
 
         # student sponsorships

@@ -1,12 +1,22 @@
 from django.contrib import admin
 from .models import Sponsorship , CourseSponsor
-# Register your models here.
 
 
 @admin.register(Sponsorship)
 class SponsorshipAdmin(admin.ModelAdmin):
-  pass
+    """Admin configuration for Sponsorship model.
+    
+    Allows administrators to manage sponsor-student enrollment relationships
+    and financial sponsorship tracking.
+    """
+    pass
+
 
 @admin.register(CourseSponsor)
 class CourseSponsorAdmin(admin.ModelAdmin):
-  pass
+    """Admin configuration for CourseSponsor model.
+    
+    Allows administrators to manage sponsor-course relationships and
+    course-level sponsorship tracking.
+    """
+    pass
